@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"library-api/internal/cache"
 	"library-api/internal/model"
 	"library-api/internal/repository"
 	"time"
@@ -15,10 +16,11 @@ var jwtSecret = []byte("library-system-secret-key-2026")
 type AuthService struct {
 	adminRepo  *repository.AdminRepo
 	readerRepo *repository.ReaderRepo
+	cache      *cache.Cache
 }
 
-func NewAuthService(adminRepo *repository.AdminRepo, readerRepo *repository.ReaderRepo) *AuthService {
-	return &AuthService{adminRepo: adminRepo, readerRepo: readerRepo}
+func NewAuthService(adminRepo *repository.AdminRepo, readerRepo *repository.ReaderRepo, redisCache *cache.Cache) *AuthService {
+	return &AuthService{adminRepo: adminRepo, readerRepo: readerRepo, cache: redisCache}
 }
 
 func (s *AuthService) Login(username, password string) (string, error) {
@@ -39,7 +41,13 @@ func (s *AuthService) Login(username, password string) (string, error) {
 	})
 
 	tokenString, err := token.SignedString(jwtSecret)
-	return tokenString, err
+	if err != nil {
+		return "", err
+	}
+
+	// 把登录会话存入 Redis（用于退出登录时主动失效）
+	s.cache.Set("session:token:"+tokenString, "1", 24*time.Hour)
+	return tokenString, nil
 }
 
 func (s *AuthService) ValidateToken(tokenString string) (*jwt.MapClaims, error) {
@@ -53,7 +61,17 @@ func (s *AuthService) ValidateToken(tokenString string) (*jwt.MapClaims, error) 
 	if !ok || !token.Valid {
 		return nil, errors.New("无效的 token")
 	}
+
+	// 检查 Redis 中是否存在该会话；已被退出登录则失效
+	if !s.cache.Exists("session:token:" + tokenString) {
+		return nil, errors.New("登录已失效，请重新登录")
+	}
 	return &claims, nil
+}
+
+// Logout 退出登录：删除 Redis 中的会话，让 token 立即失效
+func (s *AuthService) Logout(tokenString string) {
+	s.cache.Del("session:token:" + tokenString)
 }
 
 func (s *AuthService) ChangePassword(adminID uint, oldPassword, newPassword string) error {
@@ -103,7 +121,15 @@ func (s *AuthService) ReaderLogin(cardNo, password string) (string, error) {
 		"role":      "reader",
 		"exp":       time.Now().Add(24 * time.Hour).Unix(),
 	})
-	return token.SignedString(jwtSecret)
+
+	tokenString, err := token.SignedString(jwtSecret)
+	if err != nil {
+		return "", err
+	}
+
+	// 把登录会话存入 Redis
+	s.cache.Set("session:token:"+tokenString, "1", 24*time.Hour)
+	return tokenString, nil
 }
 
 // ReaderChangePassword 读者修改自己的密码

@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"library-api/internal/cache"
 	"library-api/internal/model"
 	"library-api/internal/repository"
 	"time"
@@ -15,6 +16,7 @@ type BorrowService struct {
 	bookRepo    *repository.BookRepo
 	readerRepo  *repository.ReaderRepo
 	fineService *FineService
+	cache       *cache.Cache
 }
 
 func NewBorrowService(
@@ -22,12 +24,14 @@ func NewBorrowService(
 	bookRepo *repository.BookRepo,
 	readerRepo *repository.ReaderRepo,
 	fineService *FineService,
+	redisCache *cache.Cache,
 ) *BorrowService {
 	return &BorrowService{
 		borrowRepo:  borrowRepo,
 		bookRepo:    bookRepo,
 		readerRepo:  readerRepo,
 		fineService: fineService,
+		cache:       redisCache,
 	}
 }
 
@@ -97,6 +101,12 @@ func (s *BorrowService) BorrowBook(readerID, bookID uint) (*model.BorrowRecord, 
 	if err != nil {
 		return nil, err
 	}
+
+	// 借书成功，清除相关缓存（图书详情、图书列表、首页统计）
+	s.cache.Del(fmt.Sprintf("book:detail:%d", bookID))
+	s.cache.DelByPrefix("book:list:")
+	s.cache.Del("stats:dashboard")
+
 	return record, nil
 }
 
@@ -149,6 +159,12 @@ func (s *BorrowService) ReturnBook(borrowID uint) (*model.BorrowRecord, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// 还书成功，清除相关缓存
+	s.cache.Del(fmt.Sprintf("book:detail:%d", record.BookID))
+	s.cache.DelByPrefix("book:list:")
+	s.cache.Del("stats:dashboard")
+
 	return record, nil
 }
 

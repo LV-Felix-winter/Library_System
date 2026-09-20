@@ -1,6 +1,7 @@
 package router
 
 import (
+	"library-api/internal/cache"
 	"library-api/internal/handler"
 	"library-api/internal/middleware"
 	"library-api/internal/repository"
@@ -10,7 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func SetupRouter(db *gorm.DB) *gin.Engine {
+func SetupRouter(db *gorm.DB, redisCache *cache.Cache) *gin.Engine {
 	r := gin.Default()
 	r.Use(middleware.CORS())
 
@@ -22,17 +23,18 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 	adminRepo := repository.NewAdminRepo(db)
 
 	fineService := service.NewFineService(db)
-	bookService := service.NewBookService(bookRepo)
+	bookService := service.NewBookService(bookRepo, redisCache)
 	readerService := service.NewReaderService(readerRepo)
-	borrowService := service.NewBorrowService(borrowRepo, bookRepo, readerRepo, fineService)
-	authService := service.NewAuthService(adminRepo, readerRepo)
+	borrowService := service.NewBorrowService(borrowRepo, bookRepo, readerRepo, fineService, redisCache)
+	authService := service.NewAuthService(adminRepo, readerRepo, redisCache)
 
 	bookHandler := handler.NewBookHandler(bookService)
 	readerHandler := handler.NewReaderHandler(readerService)
 	borrowHandler := handler.NewBorrowHandler(borrowService)
-	categoryHandler := handler.NewCategoryHandler(categoryRepo)
+	categoryHandler := handler.NewCategoryHandler(categoryRepo, redisCache)
 	authHandler := handler.NewAuthHandler(authService)
-	statsHandler := handler.NewStatsHandler(db)
+	statsHandler := handler.NewStatsHandler(db, redisCache)
+	cacheHandler := handler.NewCacheHandler(redisCache)
 
 	// ========== 注册路由 ==========
 	api := r.Group("/api")
@@ -77,7 +79,10 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 			auth.DELETE("/categories/:id", categoryHandler.Delete)
 
 			auth.POST("/auth/change-password", authHandler.ChangePassword)
+			auth.POST("/auth/logout", authHandler.Logout)
 
+			// Redis 缓存管理（管理员清空缓存）
+			auth.POST("/admin/cache/clear", cacheHandler.ClearCache)
 		}
 
 		reader := api.Group("").Use(middleware.ReaderAuth(authService))
@@ -86,6 +91,7 @@ func SetupRouter(db *gorm.DB) *gin.Engine {
 			reader.POST("/reader/borrow", borrowHandler.ReaderBorrow)
 			reader.POST("/reader/return", borrowHandler.ReaderReturn)
 			reader.POST("/reader/change-password", authHandler.ReaderChangePassword)
+			reader.POST("/reader/logout", authHandler.Logout)
 		}
 	}
 

@@ -4,6 +4,7 @@ import (
 	"library-api/internal/service"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -39,6 +40,14 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		"message": "登录成功",
 		"data":    gin.H{"token": token},
 	})
+}
+
+// Logout 退出登录（管理员和读者共用）
+func (h *AuthHandler) Logout(c *gin.Context) {
+	authHeader := c.GetHeader("Authorization")
+	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+	h.svc.Logout(tokenString)
+	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "退出成功"})
 }
 
 func (h *AuthHandler) ChangePassword(c *gin.Context) {

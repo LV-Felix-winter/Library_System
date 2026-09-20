@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"library-api/internal/cache"
 	"library-api/internal/model"
 	"library-api/internal/router"
 	"log"
@@ -31,7 +32,15 @@ func main() {
 	)
 	fmt.Println("✅ 数据表同步完成")
 
-	r := router.SetupRouter(db)
+	// 连接 Redis 缓存
+	redisCache := cache.New("localhost:6379", "", 0)
+	if err := redisCache.Ping(); err != nil {
+		fmt.Println("⚠️  Redis 未连接，缓存功能暂不可用（不影响其他功能）:", err)
+	} else {
+		fmt.Println("✅ Redis 缓存连接成功")
+	}
+
+	r := router.SetupRouter(db, redisCache)
 	fmt.Println("🚀 Go API 服务启动在 http://localhost:8080 ...")
 	r.Run(":8080")
 }
