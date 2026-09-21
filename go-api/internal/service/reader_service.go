@@ -42,6 +42,22 @@ func (s *ReaderService) CreateReader(reader *model.Reader) error {
 	return s.repo.Create(reader)
 }
 
+func (s *ReaderService) RegisterReader(reader *model.Reader, password string) error {
+	reader.CardNo = fmt.Sprintf("R%s%04d", time.Now().Format("20060102"), time.Now().Unix()%10000)
+	reader.Status = 0     // 0 = 待审核，管理员启用后变成 1
+	reader.MaxBorrow = 10 // 默认最多借 10 本
+	reader.ReaderType = 1 // 默认读者类型：学生
+
+	// 把用户设置的密码加密后存库（绝不明文存）
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	reader.PasswordHash = string(hash)
+
+	return s.repo.Create(reader)
+}
+
 func (s *ReaderService) UpdateReader(id uint, reader *model.Reader) error {
 	existing, err := s.repo.FindByID(id)
 	if err != nil {
