@@ -95,3 +95,37 @@ func (h *ReaderHandler) Delete(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "删除成功"})
 }
+
+// readerRegisterReq 读者自助注册的请求参数
+type readerRegisterReq struct {
+	Name     string `json:"name" binding:"required"`
+	Password string `json:"password" binding:"required,min=6"`
+	Gender   int8   `json:"gender"`
+	Phone    string `json:"phone"`
+	Email    string `json:"email"`
+	IDCard   string `json:"id_card"`
+}
+
+// Register 读者自助注册（公开接口，注册后状态为待审核）
+func (h *ReaderHandler) Register(c *gin.Context) {
+	var req readerRegisterReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "message": "请填写姓名和密码（密码至少 6 位）"})
+		return
+	}
+
+	reader := &model.Reader{
+		Name:   req.Name,
+		Gender: req.Gender,
+		Phone:  req.Phone,
+		Email:  req.Email,
+		IDCard: req.IDCard,
+	}
+
+	if err := h.svc.RegisterReader(reader, req.Password); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "message": "注册失败：" + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"code": 200, "message": "注册成功，请等待管理员审核", "data": reader})
+}
