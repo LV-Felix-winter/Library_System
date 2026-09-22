@@ -41,6 +41,7 @@ func SetupRouter(db *gorm.DB, redisCache *cache.Cache) *gin.Engine {
 	{
 		// 公开接口（无需登录）
 		api.POST("/auth/login", authHandler.Login)
+		api.POST("/reader/register", readerHandler.Register)
 		api.GET("/books", bookHandler.List)
 		api.GET("/books/search", bookHandler.Search)
 		api.GET("/books/:id", bookHandler.Detail)
