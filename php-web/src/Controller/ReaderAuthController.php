@@ -18,9 +18,9 @@ class ReaderAuthController
     {
         $pageTitle = '读者登录 - 图书馆借阅系统';
         $error     = $_GET['error'] ?? null;
+        $success   = $_GET['success'] ?? null;
         include __DIR__ . '/../../templates/reader/login.php';
     }
-
     /** 处理读者登录 */
     public function doLogin(): void
     {
@@ -57,6 +57,41 @@ class ReaderAuthController
         }
         session_destroy();
         $this->redirect('/reader/login?success=' . urlencode('已退出'));
+    }
+
+    /** 读者注册页 */
+    public function register(): void
+    {
+        $pageTitle = '读者注册 - 图书馆借阅系统';
+        $error     = $_GET['error'] ?? null;
+        include __DIR__ . '/../../templates/reader/register.php';
+    }
+
+    /** 处理读者注册提交 */
+    public function doRegister(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('/reader/register');
+            return;
+        }
+        if (!csrf_check()) {
+            $this->redirect('/reader/register?error=' . urlencode('安全校验失败，请重试'));
+            return;
+        }
+        $result = $this->readerService->register([
+            'name'     => $_POST['name'] ?? '',
+            'password' => $_POST['password'] ?? '',
+            'gender'   => (int)($_POST['gender'] ?? 0),
+            'phone'    => $_POST['phone'] ?? '',
+            'email'    => $_POST['email'] ?? '',
+            'id_card'  => $_POST['id_card'] ?? '',
+        ]);
+        if (($result['code'] ?? 500) === 200) {
+            $cardNo = $result['data']['card_no'] ?? '';
+            $this->redirect('/reader/login?success=' . urlencode('注册成功，你的借书证号是 ' . $cardNo . '，请等待管理员审核后登录'));
+        } else {
+            $this->redirect('/reader/register?error=' . urlencode($result['message'] ?? '注册失败'));
+        }
     }
 
     /** 个人中心 */
