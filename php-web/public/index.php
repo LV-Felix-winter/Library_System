@@ -199,6 +199,12 @@ switch ($uri) {
     case '/reader/doLogin':
         $readerAuthController->doLogin();
         break;
+    case '/reader/register':
+        $readerAuthController->register();
+        break;
+    case '/reader/doRegister':
+        $readerAuthController->doRegister();
+        break;
     case '/reader/logout':
         $readerAuthController->logout();
         break;
