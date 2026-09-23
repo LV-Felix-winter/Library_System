@@ -16,6 +16,9 @@
                     <?php if (!empty($error)): ?>
                     <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
                     <?php endif; ?>
+                    <?php if (!empty($success)): ?>
+                    <div class="alert alert-success"><?= htmlspecialchars($success) ?></div>
+                    <?php endif; ?>
                     <form method="POST" action="/reader/doLogin">
                         <?= csrf_field() ?>
                         <div class="mb-3">
@@ -29,7 +32,9 @@
                         <button type="submit" class="btn btn-primary w-100">登录</button>
                     </form>
                     <div class="text-center mt-3">
+                        <a href="/reader/register">注册账号</a> ·
                         <a href="/login">管理员登录</a>
+                    </div>
                     </div>
                 </div>
             </div>
