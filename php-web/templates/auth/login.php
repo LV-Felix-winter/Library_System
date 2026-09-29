@@ -11,15 +11,14 @@
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-4">
-            <div class="card shadow">
-                <div class="card-body p-4">
-                    <h3 class="text-center mb-4">
-                        <i class="bi bi-book"></i> 图书馆系统登录
-                    </h3>
-
-                    <?php if (!empty($error)): ?>
-                    <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
-                    <?php endif; ?>
+    <div class="card shadow-lg border-0" style="border-radius: 1rem;">
+        <div class="card-body p-4 p-md-5">
+            <h3 class="text-center mb-4"><i class="bi bi-book text-primary"></i> 图书馆系统登录</h3>
+            <?php if (!empty($error)): ?>
+            <div class="alert alert-danger py-2">
+                <i class="bi bi-x-circle"></i> <?= htmlspecialchars($error) ?>
+            </div>
+            <?php endif; ?>
                     <form method="POST" action="/doLogin">
                         <?= csrf_field() ?>
                         <div class="mb-3">
