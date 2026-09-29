@@ -6,6 +6,46 @@
     <title><?= htmlspecialchars($pageTitle ?? '图书馆借阅系统') ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+    /* ===== 全局 ===== */
+    body { background-color: #f5f6fa; }
+    .page-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+
+    /* ===== 卡片 ===== */
+    .card { border: none; border-radius: .75rem; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+    .card .card-title a { color: #212529; }
+    .card .card-title a:hover { color: #0d6efd; }
+
+    /* ===== 图书封面 ===== */
+    .book-cover { width: 100%; height: 180px; object-fit: cover; border-radius: .5rem .5rem 0 0; background: #e9ecef; }
+    .book-cover-placeholder { width: 100%; height: 180px; display: flex; align-items: center; justify-content: center; color: #adb5bd; background: #f1f3f5; border-radius: .5rem .5rem 0 0; }
+    .book-cover-placeholder i { font-size: 3rem; }
+
+    /* ===== 导航 ===== */
+    .navbar .nav-link.active { font-weight: 600; }
+    .navbar .nav-link.active::after { content: ""; display: block; height: 2px; background: #fff; margin-top: 2px; }
+
+    /* ===== 统计卡片 ===== */
+    .stat-card { transition: transform .15s ease, box-shadow .15s ease; }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,.12); }
+    .stat-card .stat-icon { font-size: 2rem; opacity: .9; }
+
+    /* ===== 表格 ===== */
+    .table > :not(caption) > * > * { vertical-align: middle; }
+    .table-actions { white-space: nowrap; }
+    .table-actions .btn { margin: 1px 0; }
+
+    /* ===== 空状态 ===== */
+    .empty-state { text-align: center; padding: 3rem 1rem; color: #6c757d; }
+    .empty-state i { font-size: 3rem; display: block; margin-bottom: .5rem; color: #ced4da; }
+
+    /* ===== 表单 ===== */
+    .form-label.required::after { content: " *"; color: #dc3545; }
+</style>
+    </style>
 </head>
 <body>
 
