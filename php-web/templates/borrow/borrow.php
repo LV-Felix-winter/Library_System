@@ -20,7 +20,6 @@
                                placeholder="输入图书ID（如：1=Go语言程序设计）">
                         <small class="text-muted">去「图书管理」页面可查看每本书的 ID</small>
                     </div>
-                     <?= csrf_field() ?>
                     <button type="submit" class="btn btn-primary btn-lg w-100">
                         <i class="bi bi-check-circle"></i> 确认借书
                     </button>
